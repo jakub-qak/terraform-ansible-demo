@@ -12,6 +12,29 @@ resource "aws_subnet" "web_subnet" {
   availability_zone = "us-east-1a"
 }
 
+# Internet Gateway
+resource "aws_internet_gateway" "web_igw" {
+  vpc_id = aws_vpc.web_vpc.id
+}
+
+# Route table for the public subnet
+resource "aws_route_table" "web_route_table" {
+  vpc_id = aws_vpc.web_vpc.id
+}
+
+# Route to the Internet Gateway (0.0.0.0/0 => Internet Gateway)
+resource "aws_route" "web_route" {
+  route_table_id         = aws_route_table.web_route_table.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.web_igw.id
+}
+
+# Associate the route table with the subnet
+resource "aws_route_table_association" "web_subnet_association" {
+  subnet_id      = aws_subnet.web_subnet.id
+  route_table_id = aws_route_table.web_route_table.id
+}
+
 resource "aws_security_group" "web_sg" {
   vpc_id = aws_vpc.web_vpc.id
 
